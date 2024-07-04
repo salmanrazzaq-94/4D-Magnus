@@ -2,7 +2,8 @@
 # Define users and passwords (for demonstration purposes, use a more secure method in production)
 users = {
     "admin": "password123",
-    "user": "password"
+    "user": "123",
+    "u": "p"
 }
 
 # Function to check user credentials
