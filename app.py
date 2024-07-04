@@ -6,12 +6,10 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import seaborn as sns
 
-
-# Set page config
-st.set_page_config(page_title="4D Wealth Model", page_icon=":star:", layout="wide", initial_sidebar_state="collapsed")
-
 # Disable default sidebar navigation
 st.set_option('client.showSidebarNavigation', False)
+# Set page config
+st.set_page_config(page_title="4D Wealth Model", page_icon=":star:", layout="wide", initial_sidebar_state="collapsed")
 
 # Function to display the login page
 def display_login_page():
