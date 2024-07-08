@@ -1,8 +1,8 @@
 # pages/login.py
 import streamlit as st
-from utils.authentication import check_credentials
+from utils.authentication import check_credentials 
 
-def show():
+def show(cookies):
     st.title("Login Page")
 
     username = st.text_input("Username")
@@ -13,6 +13,7 @@ def show():
         if check_credentials(username, password):
             st.session_state["logged_in"] = True
             st.session_state["username"] = username
+            cookies.set('logged_in', True)
             # st.success(f"Welcome {username}!")
             st.rerun()  # Rerun to reflect login state
         else:
