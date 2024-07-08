@@ -281,6 +281,7 @@ def display_wealth_score_results(results, df):
 
 
     # Create pie charts for each dimension
+    st.header("Distribution of Wealth Percentage Across Dimensions")
     for dimension_key, dimension_data in results.items():
         if dimension_key.startswith('D'):
             before_distribution = {option: values['Before Planning'] for option, values in dimension_data['Options'].items()}
@@ -298,6 +299,7 @@ def display_wealth_score_results(results, df):
                 st.plotly_chart(pie_chart_after)
 
     # Display stacked bar charts for each dimension
+    st.header("Impact of Redistribution of Wealth")
     for dimension_key, dimension_data in results.items():
         if dimension_key.startswith('D'):
             dimension_label = dimension_data['Dimension Label']
