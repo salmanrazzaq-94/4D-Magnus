@@ -241,7 +241,7 @@ def create_pie_chart(data, title):
     fig.update_layout(title=title)
     return fig
 
-def display_wealth_score_results(results):
+def display_wealth_score_results(results, df):
 
     # Define scores for options in each dimension
     option_scores = {
@@ -265,11 +265,13 @@ def display_wealth_score_results(results):
         col1, col2 = st.columns(2)
 
         with col1:
+            st.header(f"""Total Wealth Before Planning: {df['Before Planning'].sum()}""")
             st.subheader("Overall Before Planning Score")
             gauge_chart_before = create_gauge_chart(overall_before_planning_score, "Overall Score Before Planning")
             st.plotly_chart(gauge_chart_before)
 
         with col2:
+            st.header(f"""Total wealth After Planning: {df['After Planning'].sum()}""")
             st.subheader("Overall After Planning Score")
             gauge_chart_after = create_gauge_chart(overall_after_planning_score, "Overall Score After Planning")
             st.plotly_chart(gauge_chart_after)
@@ -284,7 +286,7 @@ def display_wealth_score_results(results):
             before_distribution = {option: values['Before Planning'] for option, values in dimension_data['Options'].items()}
             after_distribution = {option: values['After Planning'] for option, values in dimension_data['Options'].items()}
             
-            st.subheader(f"Option Distribution - {dimension_data['Dimension Label']}")
+            st.subheader(f"Dimension Distribution - {dimension_data['Dimension Label']}")
             col1, col2 = st.columns(2)
             with col1:
                 st.write("Before Planning")
@@ -306,7 +308,36 @@ def display_wealth_score_results(results):
 
 # Main function to control app flow
 def show():
-    st.title("Wealth Planning Form")
+    # Display the header
+    st.title("Welcome to the 4D Wealth Planning - Magnus Financial Group")
+
+    # Display the introductory text
+    st.markdown("""
+    **Unlock a New Dimension of Wealth Management with Magnus Financial Group**
+
+    At Magnus Financial Group, we understand that achieving long-term financial success requires a comprehensive approach. Our new product, **4D Wealth**, is designed to provide you with a clear, multidimensional view of your assets and their financial implications.
+
+    ### What is 4D Wealth?
+
+    **4D Wealth** stands for **4 Dimensional Wealth Planning**, where we delve into the following key aspects of your financial strategy:
+
+    1. **Funding Your Asset:** Understanding whether your contributions are pre-tax, partially pre-tax, or after-tax.
+    2. **Growth of Your Asset:** Exploring how your asset grows and whether it’s taxed as it appreciates.
+    3. **Taxation on Distribution:** Analyzing how your asset is taxed when distributed, whether as ordinary income, capital gain, or not taxed.
+    4. **Estate and Inheritance Taxes:** Assessing if your asset is part of your taxable estate and the implications for inheritance.
+
+    ### Why Choose Magnus Financial Group?
+
+    For over fifteen years, Magnus Financial Group has been dedicated to offering personalized wealth management services. Our approach integrates modern technology with a client-focused service model, ensuring transparency, real-time access, and long-term financial security. We work closely with you to develop and execute a tailored financial plan that evolves with your needs.
+
+    ### Our Process:
+
+    1. **Personalized Consultation:** We start by understanding your unique financial situation and goals.
+    2. **Strategic Planning:** Our Investment Team crafts a customized financial plan and implementation strategy.
+    3. **Execution and Review:** We execute the plan and provide ongoing support with regular reviews and adjustments.
+
+    Our team of experts ensures that your investment decisions align with your personal goals and risk tolerance, optimizing outcomes and minimizing tax consequences through disciplined strategies.
+    """)
 
     # Define the dimensions and their options
     dimensions = {
@@ -454,6 +485,32 @@ def show():
     """
     st.markdown(custom_css, unsafe_allow_html=True)
 
+    # Display instructions for using the form
+    st.markdown("""
+    ### Instructions for Using the 4D Wealth Planning Form
+
+    This form is designed to help you evaluate different assets based on four key dimensions of wealth management. Follow these steps to complete the form:
+
+    1. **Fill in the 'Before Planning' and 'After Planning' Columns:** Enter the values for your assets before and after planning. This information will help us analyze the impact of different strategies on your wealth.
+
+    2. **Select Options for Each Dimension:**
+    - **Taxation on Funding (D1):** Choose how your contributions are taxed—Pre-Tax, Partially Pre-Tax, or After-Tax.
+    - **Taxation on Growth (D2):** Specify if the growth of your asset is Taxable/Ordinary Income, Taxable/Capital Gain, Tax-Deferred, or Tax-Free.
+    - **Taxation on Distribution (D3):** Indicate if the asset is taxed as Taxable/Ordinary Income, Taxable/Capital Gain, or Not Taxable upon distribution.
+    - **Taxation on Death (D4):** Select Yes or No to indicate if the asset is included in the taxable estate upon death.
+    - **Asset Protection (D5):** Choose whether the asset offers Protection—Yes, No, or Partially.
+    - **Charitable Deduction (D6):** Indicate if there is a Charitable Deduction available for the asset—Yes or No.
+
+    3. **Enter Percentages for Partial Pre-Tax Contributions and Asset Protection:** If you select “Partially Pre-Tax” for D1 or “Partially” for D5, enter the applicable percentage. Otherwise, leave it as 0%.
+
+    4. **Submit the Form:** After completing the form, click the “Submit” button to calculate the wealth score based on your inputs.
+
+    If you have any questions or need help with any section, please reach out to your financial advisor.
+
+    Thank you for using the 4D Wealth Planning Form!
+                
+    ### 4D Wealth Planning Form:
+    """)
     # Build the grid options
     grid_options = gb.build()
     
@@ -478,8 +535,7 @@ def show():
         # with pd.ExcelWriter("wealth_planning_form.xlsx", engine='openpyxl') as writer:
         #     df.to_excel(writer, index=False)
         # st.success("Form submitted successfully! Data saved to `wealth_planning_form.xlsx`.")
-
         # Calculate the wealth score
         results = calculate_wealth_score(df)
-        display_wealth_score_results(results)
+        display_wealth_score_results(results, df)
 
