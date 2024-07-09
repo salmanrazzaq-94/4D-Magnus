@@ -305,33 +305,74 @@ def display_wealth_score_results(results, df):
     else:
         st.write("Overall scores are not available for display.")
 
+    
+    
 
-    # Create pie charts for each dimension
-    st.header("Distribution of Wealth Percentage Across Dimensions")
-    for dimension_key, dimension_data in results.items():
-        if dimension_key.startswith('D'):
-            before_distribution = {option: values['Before Planning'] for option, values in dimension_data['Options'].items()}
-            after_distribution = {option: values['After Planning'] for option, values in dimension_data['Options'].items()}
-            
-            st.subheader(f"Dimension Distribution - {dimension_data['Dimension Label']}")
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write("Before Planning")
-                pie_chart_before = create_pie_chart(before_distribution, option_scores[dimension_key], f"{dimension_data['Dimension Label']} - Before Planning")
-                st.plotly_chart(pie_chart_before)
-            with col2:
-                st.write("After Planning")
-                pie_chart_after = create_pie_chart(after_distribution, option_scores[dimension_key], f"{dimension_data['Dimension Label']} - After Planning")
-                st.plotly_chart(pie_chart_after)
+    st.header("Distribution of Wealth")
 
-    # Display stacked bar charts for each dimension
-    st.header("Impact of Redistribution of Wealth")
-    for dimension_key, dimension_data in results.items():
-        if dimension_key.startswith('D'):
-            dimension_label = dimension_data['Dimension Label']
-            option_scores_for_dimension = option_scores[dimension_key]
-            chart = create_stacked_bar_chart(dimension_data, dimension_label, option_scores_for_dimension)
-            st.plotly_chart(chart)
+    tab1, tab2, tab3 = st.tabs(["Dimension Analysis", "Redistribution Analysis", "Asset Type Analysis"])
+
+    with tab1:
+        # Create pie charts for each dimension
+        st.header("Distribution of Wealth Percentage Across Dimensions")
+        for dimension_key, dimension_data in results.items():
+            if dimension_key.startswith('D'):
+                before_distribution = {option: values['Before Planning'] for option, values in dimension_data['Options'].items()}
+                after_distribution = {option: values['After Planning'] for option, values in dimension_data['Options'].items()}
+                
+                st.subheader(f"Dimension Distribution - {dimension_data['Dimension Label']}")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write("Before Planning")
+                    pie_chart_before = create_pie_chart(before_distribution, option_scores[dimension_key], f"{dimension_data['Dimension Label']} - Before Planning")
+                    st.plotly_chart(pie_chart_before)
+                with col2:
+                    st.write("After Planning")
+                    pie_chart_after = create_pie_chart(after_distribution, option_scores[dimension_key], f"{dimension_data['Dimension Label']} - After Planning")
+                    st.plotly_chart(pie_chart_after)
+    with tab2:
+        # Display stacked bar charts for each dimension
+        st.header("Impact of Redistribution of Wealth")
+        for dimension_key, dimension_data in results.items():
+            if dimension_key.startswith('D'):
+                dimension_label = dimension_data['Dimension Label']
+                option_scores_for_dimension = option_scores[dimension_key]
+                chart = create_stacked_bar_chart(dimension_data, dimension_label, option_scores_for_dimension)
+                st.plotly_chart(chart)
+
+
+    
+    with tab3:
+        st.header("Asset Type Analysis")
+
+        # Filter dataframes
+        df_qualified = df[df['Asset Type'].str.contains("Qualified") & ~df['Asset Type'].str.contains("Non-Qualified")]
+        df_non_qualified = df[df['Asset Type'].str.contains("Non-Qualified")]
+        df_others = df[~df['Asset Type'].str.contains("Qualified|Non-Qualified")]
+
+        # Plot for Qualified
+        fig_qualified = px.bar(df_qualified, x='Asset Type', y=['Before Planning', 'After Planning'],
+                            title="Qualified Asset Types",
+                            labels={'value': 'Dollar Amount', 'variable': 'Planning Stage'},
+                            barmode='group')
+        fig_qualified.update_layout(xaxis_title="Asset Type", yaxis_title="Dollar Amount")
+        st.plotly_chart(fig_qualified)
+
+        # Plot for Non-Qualified
+        fig_non_qualified = px.bar(df_non_qualified, x='Asset Type', y=['Before Planning', 'After Planning'],
+                                title="Non-Qualified Asset Types",
+                                labels={'value': 'Dollar Amount', 'variable': 'Planning Stage'},
+                                barmode='group')
+        fig_non_qualified.update_layout(xaxis_title="Asset Type", yaxis_title="Dollar Amount")
+        st.plotly_chart(fig_non_qualified)
+
+        # Plot for Others
+        fig_others = px.bar(df_others, x='Asset Type', y=['Before Planning', 'After Planning'],
+                        title="Other Asset Types",
+                        labels={'value': 'Dollar Amount', 'variable': 'Planning Stage'},
+                        barmode='group')
+        fig_others.update_layout(xaxis_title="Asset Type", yaxis_title="Dollar Amount")
+        st.plotly_chart(fig_others)
 
 
 # Main function to control app flow
@@ -545,7 +586,6 @@ def show():
     # Add a cell value changed event
     def on_cell_value_changed(event):
         st.session_state['form_data'] = pd.DataFrame(event['data'])
-        print("here")
         st.rerun()
 
     # Display the editable grid
