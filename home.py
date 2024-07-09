@@ -143,20 +143,15 @@ def create_gauge_chart(score, title):
 
 # Define function to get color mapping based on option scores
 def get_color_map(option_scores):
-    scores = list(option_scores.values())
-    sorted_options = sorted(option_scores.items(), key=lambda x: x[1])
-    min_score = sorted_options[0][1]
-    max_score = sorted_options[-1][1]
-    
+    sorted_options = sorted(option_scores.items(), key=lambda x: x[1], reverse=True)  # Sort descending by score
     color_map = {}
-    for option, score in option_scores.items():
-        if score == max_score:
+    for option, score in sorted_options:
+        if score == sorted_options[0][1]:
             color_map[option] = 'green'
-        elif score == min_score:
+        elif score == sorted_options[-1][1]:
             color_map[option] = 'red'
         else:
             color_map[option] = 'orange'
-
     return color_map
 
 # Define function to create a stacked bar chart
@@ -234,12 +229,43 @@ def create_stacked_bar_chart(dimension_data, dimension_label, option_scores):
 
     return fig
 
-def create_pie_chart(data, title):
+# Define function to create a pie chart
+def create_pie_chart(data, option_scores, title):
+    color_map = get_color_map(option_scores)
     labels = list(data.keys())
     values = list(data.values())
-    fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=0.3)])
-    fig.update_layout(title=title)
+    
+    # Sort labels by score in descending order to place green at the top and red at the bottom
+    sorted_labels = sorted(labels, key=lambda x: option_scores[x], reverse=True)
+    sorted_values = [data[label] for label in sorted_labels]
+    sorted_colors = [color_map[label] for label in sorted_labels]
+
+    # Create the pie chart
+    fig = go.Figure(data=[go.Pie(
+        labels=sorted_labels,
+        values=sorted_values,
+        hole=0.3,
+        marker=dict(colors=sorted_colors),
+        textinfo='label+percent',
+        pull=[0.1] * len(sorted_labels),  # Add space between slices
+        sort=False  # Disable the default sorting of the pie chart slices
+    )])
+    
+    # Update layout for the pie chart
+    fig.update_layout(
+        title=title,
+        legend=dict(
+            title='Options',
+            x=1, 
+            y=1,
+            traceorder='normal',  # Normal order for legend to show green at the top and red at the bottom
+            orientation='v'  # Ensure vertical layout for legend
+        ),
+        margin=dict(l=0, r=250, t=150, b=0)  # Adjust margins to fit the legend
+    )
+    
     return fig
+
 
 def display_wealth_score_results(results, df):
 
@@ -265,14 +291,14 @@ def display_wealth_score_results(results, df):
         col1, col2 = st.columns(2)
 
         with col1:
-            st.header(f"""Total Wealth Before Planning: {df['Before Planning'].sum()}""")
-            st.subheader("Overall Before Planning Score")
+            st.subheader(f"""Total Wealth Before Planning: ${df['Before Planning'].sum():,.2f}""")
+            st.subheader("Before Planning 4D Wealth Score")
             gauge_chart_before = create_gauge_chart(overall_before_planning_score, "Overall Score Before Planning")
             st.plotly_chart(gauge_chart_before)
 
         with col2:
-            st.header(f"""Total wealth After Planning: {df['After Planning'].sum()}""")
-            st.subheader("Overall After Planning Score")
+            st.subheader(f"""Total Wealth After Planning: ${df['After Planning'].sum():,.2f}""")
+            st.subheader("After Planning 4D Wealth Score")
             gauge_chart_after = create_gauge_chart(overall_after_planning_score, "Overall Score After Planning")
             st.plotly_chart(gauge_chart_after)
 
@@ -291,11 +317,11 @@ def display_wealth_score_results(results, df):
             col1, col2 = st.columns(2)
             with col1:
                 st.write("Before Planning")
-                pie_chart_before = create_pie_chart(before_distribution, f"{dimension_data['Dimension Label']} - Before Planning")
+                pie_chart_before = create_pie_chart(before_distribution, option_scores[dimension_key], f"{dimension_data['Dimension Label']} - Before Planning")
                 st.plotly_chart(pie_chart_before)
             with col2:
                 st.write("After Planning")
-                pie_chart_after = create_pie_chart(after_distribution, f"{dimension_data['Dimension Label']} - After Planning")
+                pie_chart_after = create_pie_chart(after_distribution, option_scores[dimension_key], f"{dimension_data['Dimension Label']} - After Planning")
                 st.plotly_chart(pie_chart_after)
 
     # Display stacked bar charts for each dimension
