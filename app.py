@@ -3,6 +3,7 @@ import login
 from utils.authentication import check_credentials
 import home
 from streamlit_cookies_controller import CookieController
+import time
 
 # Set page config
 st.set_page_config(page_title="4D Magnus", page_icon=":star:", layout="wide", initial_sidebar_state="collapsed")
@@ -10,11 +11,10 @@ st.set_page_config(page_title="4D Magnus", page_icon=":star:", layout="wide", in
 st.set_option('client.showSidebarNavigation', False)
 
 # Initialize cookie manager
-cookies = CookieController()
+cookies = CookieController(key='cookies')
 
-
-if 'logged_in' in cookies.getAll():
-    print("here", cookies.get('logged_in'))
+# Check if the 'logged_in' cookie exists and set the session state accordingly
+if cookies.getAll().get('logged_in', None):
     st.session_state['logged_in'] = cookies.get('logged_in')
 else:
     st.session_state['logged_in'] = False
@@ -39,6 +39,7 @@ def main():
         if st.sidebar.button("Logout"):
             st.session_state['logged_in'] = False
             cookies.set('logged_in', False)  # Clear the login cookie
+            time.sleep(1)  # Wait for 1 second before rerunning the app
             st.rerun()  # Refresh the page to reflect the change
     else:
         # Show the login page if not logged in
