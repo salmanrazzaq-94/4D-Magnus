@@ -5,6 +5,10 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import plotly.express as px
 import seaborn as sns
+import streamlit.components.v1 as components
+import llm_agent
+import asyncio
+import json
 
 # # Disable default sidebar navigation
 # st.set_option('client.showSidebarNavigation', False)
@@ -12,27 +16,30 @@ import seaborn as sns
 # st.set_page_config(page_title="4D Wealth Model", page_icon=":star:", layout="wide", initial_sidebar_state="collapsed")
 
 
-def calculate_wealth_score(form_data):
-    # Define the dimensions and their options with weights
-    dimensions = {
-        "D1": {"label": "Taxation on Funding", "options": ["Pre-Tax", "Partially Pre-Tax", "After-Tax"], "weight": 0.20},
-        "D2": {"label": "Taxation on Growth", "options": ["Taxable/Ordinary Income", "Taxable/Capital Gain", "Tax-Deferred", "Tax-Free"], "weight": 0.20},
-        "D3": {"label": "Taxation on Distribution", "options": ["Taxable/Ordinary Income", "Taxable/Capital Gain", "Not taxable"], "weight": 0.20},
-        "D4": {"label": "Taxation on Death", "options": ["Yes", "No"], "weight": 0.20},
-        "D5": {"label": "Asset Protection", "options": ["Yes", "No", "Partially"], "weight": 0.10},
-        "D6": {"label": "Charitable Deduction", "options": ["Yes", "No"], "weight": 0.10}
-    }
-    
-    # Define scores for options in each dimension
-    option_scores = {
-        "D1": {"Pre-Tax": 3, "Partially Pre-Tax": 2, "After-Tax": 1},
-        "D2": {"Taxable/Capital Gain": 1, "Taxable/Ordinary Income": 2, "Tax-Deferred": 3, "Tax-Free": 4},
-        "D3": {"Taxable/Ordinary Income": 1, "Taxable/Capital Gain": 2, "Not taxable": 3},
-        "D4": {"Yes": 1, "No": 2},
-        "D5": {"Yes": 3, "Partially": 2, "No": 1},
-        "D6": {"Yes": 2, "No": 1}
+
+# Define the dimensions and their options with weights
+dimensions = {
+    "D1": {"label": "Taxation on Funding", "options": ["Pre-Tax", "Partially Pre-Tax", "After-Tax"], "weight": 0.20},
+    "D2": {"label": "Taxation on Growth", "options": ["Taxable/Ordinary Income", "Taxable/Capital Gain", "Tax-Deferred", "Tax-Free"], "weight": 0.20},
+    "D3": {"label": "Taxation on Distribution", "options": ["Taxable/Ordinary Income", "Taxable/Capital Gain", "Not taxable"], "weight": 0.20},
+    "D4": {"label": "Taxation on Death", "options": ["Yes", "No"], "weight": 0.20},
+    "D5": {"label": "Asset Protection", "options": ["Yes", "No", "Partially"], "weight": 0.10},
+    "D6": {"label": "Charitable Deduction", "options": ["Yes", "No"], "weight": 0.10}
+}
+
+# Define scores for options in each dimension
+option_scores = {
+    "D1": {"Pre-Tax": 3, "Partially Pre-Tax": 2, "After-Tax": 1},
+    "D2": {"Taxable/Capital Gain": 1, "Taxable/Ordinary Income": 2, "Tax-Deferred": 3, "Tax-Free": 4},
+    "D3": {"Taxable/Ordinary Income": 1, "Taxable/Capital Gain": 2, "Not taxable": 3},
+    "D4": {"Yes": 1, "No": 2},
+    "D5": {"Yes": 3, "Partially": 2, "No": 1},
+    "D6": {"Yes": 2, "No": 1}
     }
 
+def calculate_wealth_score(form_data):
+    global dimensions
+    global option_scores
     # Compute total income before and after planning
     total_income_before_planning = form_data["Before Planning"].replace('', 0).astype(float).sum()
     total_income_after_planning = form_data["After Planning"].replace('', 0).astype(float).sum()
@@ -83,17 +90,17 @@ def calculate_wealth_score(form_data):
 
             # Populate the nested dictionary for each option
             results[dimension]["Options"][option] = {
-                "Before Planning": before_sum,
-                "After Planning": after_sum,
-                "Before Planning %": before_percentage,
-                "After Planning %": after_percentage,
-                "Before Planning Score": score_before_planning,
-                "After Planning Score": score_after_planning
+                "Before Planning": float(before_sum),
+                "After Planning": float(after_sum),
+                "Before Planning %": float(round(before_percentage, 4)),  # Format as percentage
+                "After Planning %": float(round(after_percentage, 4)),   # Format as percentage
+                "Before Planning Score": float(round(score_before_planning, 2)),
+                "After Planning Score": float(round(score_after_planning, 2))
             }
 
         # Add the total scores for the dimension
-        results[dimension]["Total Before Planning Score"] = total_before_score
-        results[dimension]["Total After Planning Score"] = total_after_score
+        results[dimension]["Total Before Planning Score"] = float(round(total_before_score, 2))
+        results[dimension]["Total After Planning Score"] = float(round(total_after_score, 2))
 
         # Calculate the weighted average score for the dimension
         overall_total_before_score += total_before_score
@@ -101,8 +108,8 @@ def calculate_wealth_score(form_data):
 
     # Add the overall scores to the results dictionary
     results["Overall"] = {
-        "Overall Before Planning Score": overall_total_before_score,
-        "Overall After Planning Score": overall_total_after_score
+        "Overall Before Planning Score": float(round(overall_total_before_score, 2)),
+        "Overall After Planning Score": float(round(overall_total_after_score, 2))
     }
 
     return results
@@ -158,6 +165,7 @@ def get_color_map(option_scores):
 def create_stacked_bar_chart(dimension_data, dimension_label, option_scores):
     options = dimension_data['Options']
     color_map = get_color_map(option_scores)
+    print(color_map)
 
     # Prepare data for before and after planning
     before_contributions = {}
@@ -268,16 +276,9 @@ def create_pie_chart(data, option_scores, title):
 
 
 def display_wealth_score_results(results, df):
+    global dimensions
+    global option_scores
 
-    # Define scores for options in each dimension
-    option_scores = {
-        "D1": {"Pre-Tax": 3, "Partially Pre-Tax": 2, "After-Tax": 1},
-        "D2": {"Taxable/Capital Gain": 1, "Taxable/Ordinary Income": 2, "Tax-Deferred": 3, "Tax-Free": 4},
-        "D3": {"Taxable/Ordinary Income": 1, "Taxable/Capital Gain": 2, "Not taxable": 3},
-        "D4": {"Yes": 1, "No": 2},
-        "D5": {"Yes": 3, "Partially": 2, "No": 1},
-        "D6": {"Yes": 2, "No": 1}
-    }
     # Extract overall scores
     overall_before_planning_score = results.get("Overall", {}).get("Overall Before Planning Score")
     overall_after_planning_score = results.get("Overall", {}).get("Overall After Planning Score")
@@ -310,7 +311,7 @@ def display_wealth_score_results(results, df):
 
     st.header("Distribution of Wealth")
 
-    tab1, tab2, tab3 = st.tabs(["Dimension Analysis", "Redistribution Analysis", "Asset Type Analysis"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Dimension Analysis", "Redistribution Analysis", "Asset Type Analysis", "Agentic Recommendations"])
 
     with tab1:
         # Create pie charts for each dimension
@@ -337,6 +338,7 @@ def display_wealth_score_results(results, df):
             if dimension_key.startswith('D'):
                 dimension_label = dimension_data['Dimension Label']
                 option_scores_for_dimension = option_scores[dimension_key]
+                print(dimension_data, dimension_label, option_scores_for_dimension)
                 chart = create_stacked_bar_chart(dimension_data, dimension_label, option_scores_for_dimension)
                 st.plotly_chart(chart)
 
@@ -373,6 +375,79 @@ def display_wealth_score_results(results, df):
                         barmode='group')
         fig_others.update_layout(xaxis_title="Asset Type", yaxis_title="Dollar Amount")
         st.plotly_chart(fig_others)
+
+    with tab4:
+        st.session_state.tab4_activated = True
+        st.header("Agentic Recommendations")
+        user_query = create_user_query(results, df)
+        print(user_query)
+        asyncio.run(llm_response(user_query))
+
+
+def convert_json_to_string(json_data):
+    """
+    Convert JSON data to a pretty-formatted string.
+
+    Args:
+    - json_data (dict or list): The JSON data to convert.
+
+    Returns:
+    - str: A pretty-formatted string of the JSON data.
+    """
+    return json.dumps(json_data, indent=4, sort_keys=True)
+
+
+def create_user_query(results, df):
+    global dimensions
+    global option_scores
+    # Convert to JSON
+    df_json = convert_json_to_string(json.loads(df.to_json(orient='records')))
+    results = convert_json_to_string(results)
+    dimensions = convert_json_to_string(dimensions)
+    option_scores = convert_json_to_string(option_scores)
+
+    user_query = f"""
+You are an Asset Wealth Manager with strong financial expertise. I need your help in devising three strategies to improve my wealth score. In the ###Data### provided below, all columns remain fixed except for the "After Planning" column. Your task is to devise a reallocation of money in different asset types so that the wealth score is maximized. Use the ###Dimensions_Weight### and ###Options_Score### sections to understand how the wealth score is calculated.
+
+The current results are available in the ###Results### section. Please use the following notes to devise a proper response.
+
+###Data###
+{df_json}
+
+###Dimensions_Weight###
+{dimensions}
+
+###Options_Score###
+{option_scores}
+
+###Results###
+{results}
+
+Notes:
+- Write three strategies without providing numbers for reallocating wealth in different asset types that are better for increasing our wealth score.
+- Remember that we do not require number but strategic guidance on how to reallocate wealth given Asset Types with dimensions.
+- Remember, everything else in the data will remain fixed. Only the "After Planning" column can be changed.
+- Specify both the asset types from which we should reduce wealth and the asset types where we should invest.
+"""
+    return user_query
+    
+
+async def llm_response(user_query):
+        page_placeholders = {}
+        page_placeholders['llm_response'] = st.empty()
+
+
+        run_status_element = st.empty()
+
+        with st.spinner(f'Querying Agent for response...'):
+            page_placeholders['llm_response'] = components.html(llm_agent.awaiting_response_html, height=300)
+
+        loop = asyncio.get_event_loop()
+
+        result = await loop.create_task(llm_agent.call_llm_agent(user_query = user_query, chat_response_container = page_placeholders['llm_response'],  run_status_element = run_status_element))
+
+        run_status_element.empty()
+        llm_agent.render_text_area(page_placeholders['llm_response'], 'llm_response', result['agent_response'])
 
 
 # Main function to control app flow
@@ -607,3 +682,4 @@ def show():
         results = calculate_wealth_score(df)
         display_wealth_score_results(results, df)
 
+      
