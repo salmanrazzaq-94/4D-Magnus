@@ -265,13 +265,13 @@ def display_wealth_score_results(results, df):
         col1, col2 = st.columns(2)
 
         with col1:
-            st.header(f"""Total Wealth Before Planning: {df['Before Planning'].sum()}""")
+            st.header(f"""Total Wealth Before Planning: ${df['Before Planning'].sum():,.2f}""")
             st.subheader("Overall Before Planning Score")
             gauge_chart_before = create_gauge_chart(overall_before_planning_score, "Overall Score Before Planning")
             st.plotly_chart(gauge_chart_before)
 
         with col2:
-            st.header(f"""Total wealth After Planning: {df['After Planning'].sum()}""")
+            st.header(f"""Total Wealth After Planning: ${df['After Planning'].sum():,.2f}""")
             st.subheader("Overall After Planning Score")
             gauge_chart_after = create_gauge_chart(overall_after_planning_score, "Overall Score After Planning")
             st.plotly_chart(gauge_chart_after)
