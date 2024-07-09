@@ -14,6 +14,7 @@ cookies = CookieController()
 
 
 if 'logged_in' in cookies.getAll():
+    print("here", cookies.get('logged_in'))
     st.session_state['logged_in'] = cookies.get('logged_in')
 else:
     st.session_state['logged_in'] = False
