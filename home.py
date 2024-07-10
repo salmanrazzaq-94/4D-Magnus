@@ -343,9 +343,9 @@ def display_wealth_score_results(results, df):
     # Extract overall scores
     overall_before_planning_score = results.get("Overall", {}).get("Overall Before Planning Score")
     overall_after_planning_score = results.get("Overall", {}).get("Overall After Planning Score")
-
+    st.divider()
     # Streamlit layout
-    st.title("Wealth Score Analysis")
+    st.title("Results")
 
     # Check if the scores are available before creating charts
     if overall_before_planning_score is not None and overall_after_planning_score is not None:
@@ -354,12 +354,14 @@ def display_wealth_score_results(results, df):
 
         with col1:
             st.subheader(f"""Total Wealth Before Planning: ${df['Before Planning'].sum():,.2f}""")
+            st.divider()
             st.subheader("Before Planning 4D Wealth Score")
             gauge_chart_before = create_gauge_chart(overall_before_planning_score, "Overall Score Before Planning")
             st.plotly_chart(gauge_chart_before)
 
         with col2:
             st.subheader(f"""Total Wealth After Planning: ${df['After Planning'].sum():,.2f}""")
+            st.divider()
             st.subheader("After Planning 4D Wealth Score")
             gauge_chart_after = create_gauge_chart(overall_after_planning_score, "Overall Score After Planning")
             st.plotly_chart(gauge_chart_after)
@@ -369,10 +371,10 @@ def display_wealth_score_results(results, df):
 
     
     
+    st.divider()
+    st.header("Wealth Score Analysis")
 
-    st.header("Distribution of Wealth")
-
-    tab1, tab2, tab3, tab4 = st.tabs(["Dimension Analysis", "Redistribution Analysis", "Asset Type Analysis", "Agentic Recommendations"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Dimension Analysis", "Redistribution Analysis", "Asset Type Analysis", "Recommendations"])
 
     with tab1:
         # Create pie charts for each dimension
@@ -381,7 +383,7 @@ def display_wealth_score_results(results, df):
             if dimension_key.startswith('D'):
                 before_distribution = {option: values['Before Planning'] for option, values in dimension_data['Options'].items()}
                 after_distribution = {option: values['After Planning'] for option, values in dimension_data['Options'].items()}
-                
+                st.divider()
                 st.subheader(f"Dimension Distribution - {dimension_data['Dimension Label']}")
                 col1, col2 = st.columns(2)
                 with col1:
@@ -397,6 +399,7 @@ def display_wealth_score_results(results, df):
         st.header("Impact of Redistribution of Wealth")
         for dimension_key, dimension_data in results.items():
             if dimension_key.startswith('D'):
+                st.divider()
                 dimension_label = dimension_data['Dimension Label']
                 option_scores_for_dimension = option_scores[dimension_key]
                 chart = create_stacked_bar_chart(dimension_data, dimension_label, option_scores_for_dimension)
@@ -411,7 +414,8 @@ def display_wealth_score_results(results, df):
         df_qualified = df[df['Asset Type'].str.contains("Qualified") & ~df['Asset Type'].str.contains("Non-Qualified")]
         df_non_qualified = df[df['Asset Type'].str.contains("Non-Qualified")]
         df_others = df[~df['Asset Type'].str.contains("Qualified|Non-Qualified")]
-
+        
+        st.divider()
         # Plot for Qualified
         fig_qualified = px.bar(df_qualified, x='Asset Type', y=['Before Planning', 'After Planning'],
                             title="Qualified Asset Types",
@@ -420,6 +424,7 @@ def display_wealth_score_results(results, df):
         fig_qualified.update_layout(xaxis_title="Asset Type", yaxis_title="Dollar Amount")
         st.plotly_chart(fig_qualified)
 
+        st.divider()
         # Plot for Non-Qualified
         fig_non_qualified = px.bar(df_non_qualified, x='Asset Type', y=['Before Planning', 'After Planning'],
                                 title="Non-Qualified Asset Types",
@@ -428,6 +433,7 @@ def display_wealth_score_results(results, df):
         fig_non_qualified.update_layout(xaxis_title="Asset Type", yaxis_title="Dollar Amount")
         st.plotly_chart(fig_non_qualified)
 
+        st.divider()
         # Plot for Others
         fig_others = px.bar(df_others, x='Asset Type', y=['Before Planning', 'After Planning'],
                         title="Other Asset Types",
@@ -438,7 +444,7 @@ def display_wealth_score_results(results, df):
 
     with tab4:
         st.session_state.tab4_activated = True
-        st.header("Agentic Recommendations")
+        st.header("Strategic Recommendations")
         user_query = create_user_query(results, df)
         asyncio.run(llm_response(user_query))
 
@@ -522,32 +528,69 @@ def show():
     st.title("Welcome to the 4D Wealth Planning - Magnus Financial Group")
 
     # Display the introductory text
-    st.markdown("""
-    **Unlock a New Dimension of Wealth Management with Magnus Financial Group**
+    # Introductory Text
+    with st.expander("Introduction"):
+        st.markdown("""
+        **Unlock a New Dimension of Wealth Management with Magnus Financial Group**
 
-    At Magnus Financial Group, we understand that achieving long-term financial success requires a comprehensive approach. Our new product, **4D Wealth**, is designed to provide you with a clear, multidimensional view of your assets and their financial implications.
+        At Magnus Financial Group, we understand that achieving long-term financial success requires a comprehensive approach. Our new product, **4D Wealth**, is designed to provide you with a clear, multidimensional view of your assets and their financial implications.
+        """)
 
-    ### What is 4D Wealth?
+    # What is 4D Wealth?
+    with st.expander("What is 4D Wealth?"):
+        st.markdown("""
+        **4D Wealth** stands for **4 Dimensional Wealth Planning**, where we delve into the following key aspects of your financial strategy:
 
-    **4D Wealth** stands for **4 Dimensional Wealth Planning**, where we delve into the following key aspects of your financial strategy:
+        1. **Funding Your Asset:** Understanding whether your contributions are pre-tax, partially pre-tax, or after-tax.
+        2. **Growth of Your Asset:** Exploring how your asset grows and whether it’s taxed as it appreciates.
+        3. **Taxation on Distribution:** Analyzing how your asset is taxed when distributed, whether as ordinary income, capital gain, or not taxed.
+        4. **Estate and Inheritance Taxes:** Assessing if your asset is part of your taxable estate and the implications for inheritance.
+        """)
 
-    1. **Funding Your Asset:** Understanding whether your contributions are pre-tax, partially pre-tax, or after-tax.
-    2. **Growth of Your Asset:** Exploring how your asset grows and whether it’s taxed as it appreciates.
-    3. **Taxation on Distribution:** Analyzing how your asset is taxed when distributed, whether as ordinary income, capital gain, or not taxed.
-    4. **Estate and Inheritance Taxes:** Assessing if your asset is part of your taxable estate and the implications for inheritance.
+    # Why Choose Magnus Financial Group?
+    with st.expander("Why Choose Magnus Financial Group?"):
+        st.markdown("""
+        For over fifteen years, Magnus Financial Group has been dedicated to offering personalized wealth management services. Our approach integrates modern technology with a client-focused service model, ensuring transparency, real-time access, and long-term financial security. We work closely with you to develop and execute a tailored financial plan that evolves with your needs.
+        """)
 
-    ### Why Choose Magnus Financial Group?
+    # Our Process
+    with st.expander("Our Process"):
+        st.markdown("""
+        1. **Personalized Consultation:** We start by understanding your unique financial situation and goals.
+        2. **Strategic Planning:** Our Investment Team crafts a customized financial plan and implementation strategy.
+        3. **Execution and Review:** We execute the plan and provide ongoing support with regular reviews and adjustments.
 
-    For over fifteen years, Magnus Financial Group has been dedicated to offering personalized wealth management services. Our approach integrates modern technology with a client-focused service model, ensuring transparency, real-time access, and long-term financial security. We work closely with you to develop and execute a tailored financial plan that evolves with your needs.
+        Our team of experts ensures that your investment decisions align with your personal goals and risk tolerance, optimizing outcomes and minimizing tax consequences through disciplined strategies.
+        """)
 
-    ### Our Process:
+    with st.expander("Instructions for Using the 4D Wealth Planning Form"):
+        st.markdown("""
+    ### Instructions for Using the 4D Wealth Planning Form
 
-    1. **Personalized Consultation:** We start by understanding your unique financial situation and goals.
-    2. **Strategic Planning:** Our Investment Team crafts a customized financial plan and implementation strategy.
-    3. **Execution and Review:** We execute the plan and provide ongoing support with regular reviews and adjustments.
+    This form helps you evaluate assets based on four key dimensions of wealth management. Follow these steps to complete the form:
 
-    Our team of experts ensures that your investment decisions align with your personal goals and risk tolerance, optimizing outcomes and minimizing tax consequences through disciplined strategies.
+    1. **Fill in the 'Before Planning' and 'After Planning' Columns:**
+       - Enter values for your assets before and after planning. This information is crucial for analyzing the impact of different strategies on your wealth.
+
+    2. **Select Options for Each Dimension:**
+       - **Taxation on Funding (D1):** Choose how your contributions are taxed—Pre-Tax, Partially Pre-Tax, or After-Tax.
+       - **Taxation on Growth (D2):** Specify if the growth of your asset is Taxable/Ordinary Income, Taxable/Capital Gain, Tax-Deferred, or Tax-Free.
+       - **Taxation on Distribution (D3):** Indicate if the asset is taxed as Taxable/Ordinary Income, Taxable/Capital Gain, or Not Taxable upon distribution.
+       - **Taxation on Death (D4):** Select Yes or No to indicate if the asset is included in the taxable estate upon death.
+       - **Asset Protection (D5):** Choose whether the asset offers Protection—Yes, No, or Partially.
+       - **Charitable Deduction (D6):** Indicate if there is a Charitable Deduction available for the asset—Yes or No.
+
+    3. **Enter Percentages for Partial Pre-Tax Contributions and Asset Protection:**
+       - If you select “Partially Pre-Tax” for D1 or “Partially” for D5, enter the applicable percentage. Otherwise, leave it as 0%.
+
+    4. **Submit the Form:**
+       - After completing the form, click the “Submit” button to calculate the wealth score based on your inputs.
+
+    If you have any questions or need help with any section, please reach out to your financial advisor.
+
+    Thank you for using the 4D Wealth Planning Form!
     """)
+    st.divider()
 
     # Define the dimensions and their options
     dimensions = {
@@ -695,39 +738,11 @@ def show():
     """
     st.markdown(custom_css, unsafe_allow_html=True)
 
-    # Display instructions for using the form
-    st.markdown("""
-    ### Instructions for Using the 4D Wealth Planning Form
-
-    This form is designed to help you evaluate different assets based on four key dimensions of wealth management. Follow these steps to complete the form:
-
-    1. **Fill in the 'Before Planning' and 'After Planning' Columns:** Enter the values for your assets before and after planning. This information will help us analyze the impact of different strategies on your wealth.
-
-    2. **Select Options for Each Dimension:**
-    - **Taxation on Funding (D1):** Choose how your contributions are taxed—Pre-Tax, Partially Pre-Tax, or After-Tax.
-    - **Taxation on Growth (D2):** Specify if the growth of your asset is Taxable/Ordinary Income, Taxable/Capital Gain, Tax-Deferred, or Tax-Free.
-    - **Taxation on Distribution (D3):** Indicate if the asset is taxed as Taxable/Ordinary Income, Taxable/Capital Gain, or Not Taxable upon distribution.
-    - **Taxation on Death (D4):** Select Yes or No to indicate if the asset is included in the taxable estate upon death.
-    - **Asset Protection (D5):** Choose whether the asset offers Protection—Yes, No, or Partially.
-    - **Charitable Deduction (D6):** Indicate if there is a Charitable Deduction available for the asset—Yes or No.
-
-    3. **Enter Percentages for Partial Pre-Tax Contributions and Asset Protection:** If you select “Partially Pre-Tax” for D1 or “Partially” for D5, enter the applicable percentage. Otherwise, leave it as 0%.
-
-    4. **Submit the Form:** After completing the form, click the “Submit” button to calculate the wealth score based on your inputs.
-
-    If you have any questions or need help with any section, please reach out to your financial advisor.
-
-    Thank you for using the 4D Wealth Planning Form!
-                
-    ### 4D Wealth Planning Form:
-    """)
     # Build the grid options
     grid_options = gb.build()
     
-    # Add a cell value changed event
-    def on_cell_value_changed(event):
-        st.session_state['form_data'] = pd.DataFrame(event['data'])
-        st.rerun()
+
+    st.header("4D Wealth Planning Form")
 
     # Display the editable grid
     grid_response = AgGrid(

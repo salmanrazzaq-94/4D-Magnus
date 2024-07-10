@@ -6,7 +6,7 @@ from streamlit_cookies_controller import CookieController
 import time
 
 # Set page config
-st.set_page_config(page_title="4D Magnus", page_icon=":star:", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="4D Wealth Planning", page_icon=":star:", layout="wide", initial_sidebar_state="collapsed")
 
 st.set_option('client.showSidebarNavigation', False)
 
