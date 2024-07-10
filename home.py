@@ -435,7 +435,7 @@ def display_wealth_score_results(results, df):
     st.divider()
     st.header("Wealth Score Analysis")
 
-    tab1, tab2, tab3, tab4 = st.tabs(["Dimension Analysis", "Redistribution Analysis", "Asset Type Analysis", "Recommendations"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Dimension Analysis", "Redistribution Analysis 1", "Redistribution Analysis 2", "Asset Type Analysis", "Recommendations"])
 
 
     with tab1:
@@ -481,9 +481,7 @@ def display_wealth_score_results(results, df):
                     st.plotly_chart(pie_chart_after)
 
 
-
-
-    with tab2:
+    with tab3:
         # Display stacked bar charts for each dimension
         st.header("Impact of Redistribution of Wealth")
         for dimension_key, dimension_data in results.items():
@@ -496,7 +494,7 @@ def display_wealth_score_results(results, df):
 
 
     
-    with tab3:
+    with tab4:
         st.header("Asset Type Analysis")
 
         # Filter dataframes
@@ -531,7 +529,7 @@ def display_wealth_score_results(results, df):
         fig_others.update_layout(xaxis_title="Asset Type", yaxis_title="Dollar Amount")
         st.plotly_chart(fig_others)
 
-    with tab4:
+    with tab5:
         st.session_state.tab4_activated = True
         st.header("Strategic Recommendations")
         user_query = create_user_query(results, df)
