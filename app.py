@@ -14,8 +14,9 @@ st.set_option('client.showSidebarNavigation', False)
 cookies = CookieController(key='cookies')
 
 # Check if the 'logged_in' cookie exists and set the session state accordingly
-if cookies.getAll().get('logged_in', None):
-    st.session_state['logged_in'] = cookies.get('logged_in')
+if cookies.getAll():
+    if cookies.getAll().get('logged_in', None):
+        st.session_state['logged_in'] = cookies.get('logged_in')
 else:
     st.session_state['logged_in'] = False
 
