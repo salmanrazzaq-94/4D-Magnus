@@ -1,5 +1,5 @@
 import streamlit as st
-import login
+import login, footer
 from utils.authentication import check_credentials
 import home
 from streamlit_cookies_controller import CookieController
@@ -45,6 +45,7 @@ def main():
     else:
         # Show the login page if not logged in
         login.show(cookies)
+    # footer.footer()
 
 if __name__ == "__main__":
     main()

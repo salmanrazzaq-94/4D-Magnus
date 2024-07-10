@@ -10,6 +10,7 @@ import llm_agent
 import asyncio
 import json
 
+
 # # Disable default sidebar navigation
 # st.set_option('client.showSidebarNavigation', False)
 # # Set page config
@@ -164,6 +165,10 @@ def calculate_wealth_score(form_data):
         results[dimension]["Total Before Planning Score"] = float(round(total_before_score, 2))
         results[dimension]["Total After Planning Score"] = float(round(total_after_score, 2))
 
+        # Add the total scores for the dimension
+        results[dimension]["Total Before Planning Score Percentage"] = float(round(total_before_score/weight, 4))
+        results[dimension]["Total After Planning Score Percentage"] = float(round(total_after_score/weight, 4))
+
         # Calculate the weighted average score for the dimension
         overall_total_before_score += total_before_score
         overall_total_after_score += total_after_score
@@ -186,20 +191,21 @@ performance_data = {
     "Good": 50
 }
 
-def create_gauge_chart(score, title):
+def create_gauge_chart(score, title, reference):
     # Create a gauge chart
     fig = go.Figure(go.Indicator(
     mode="gauge+number+delta",
     value=score,
     title={"text": title},
+    delta={'reference': reference, 'increasing': {'color': 'green'}, 'decreasing': {'color': 'red'}},
     gauge={
-        'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "black"},
-        'bar': {'color': 'blue'},
+        'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "white"},
+        'bar': {'color': '#0f0e65'},
         'bgcolor': 'lightgray',
         'steps': [
-            {'range': [0, performance_data['Poor']], 'color': 'red'},
-            {'range': [performance_data['Poor'], performance_data['Poor'] + performance_data['Average']], 'color': 'yellow'},
-            {'range': [performance_data['Poor'] + performance_data['Average'], 100], 'color': 'green'}
+            {'range': [0, performance_data['Poor']], 'color': '#ED1C24'},
+            {'range': [performance_data['Poor'], performance_data['Poor'] + performance_data['Average']], 'color': '#FFCC00'},
+            {'range': [performance_data['Poor'] + performance_data['Average'], 100], 'color': '#007A00'}
         ],
         'threshold': {
             'line': {'color': 'red', 'width': 4},
@@ -216,11 +222,11 @@ def get_color_map(option_scores):
     color_map = {}
     for option, score in sorted_options:
         if score == sorted_options[0][1]:
-            color_map[option] = 'green'
+            color_map[option] = '#007A00'
         elif score == sorted_options[-1][1]:
-            color_map[option] = 'red'
+            color_map[option] = '#ED1C24'
         else:
-            color_map[option] = 'orange'
+            color_map[option] = '#FFCC00'
     return color_map
 
 # Define function to create a stacked bar chart
@@ -336,6 +342,61 @@ def create_pie_chart(data, option_scores, title):
     return fig
 
 
+
+import altair as alt
+import pandas as pd
+import streamlit as st
+
+def make_donut(input_response, input_text):
+    input_response = round(input_response, 1)  # Round to one decimal place
+    if input_response<=20:
+        input_color = 'red'
+    elif input_response>20 and input_response<=60:
+        input_color = 'orange'
+    elif input_response>60:
+        input_color = 'green'
+
+
+    if input_color == 'blue':
+        chart_color = ['#29b5e8', '#155F7A']
+    if input_color == 'green':
+        chart_color = ['#27AE60', '#12783D']
+    if input_color == 'orange':
+        chart_color = ['#F39C12', '#875A12']
+    if input_color == 'red':
+        chart_color = ['#E74C3C', '#781F16']
+
+    source = pd.DataFrame({
+        "Topic": ['', input_text],
+        "% value": [100 - input_response, input_response]
+    })
+    source_bg = pd.DataFrame({
+        "Topic": ['', input_text],
+        "% value": [100, 0]
+    })
+
+    plot = alt.Chart(source).mark_arc(innerRadius=100, cornerRadius=40).encode(
+        theta=alt.Theta(field="% value", type="quantitative"),
+        color=alt.Color("Topic:N",
+                        scale=alt.Scale(
+                            domain=[input_text, ''],
+                            range=chart_color),
+                        legend=None),
+    ).properties(width=360, height=360)
+
+    text = plot.mark_text(align='center', color=chart_color[1], font="Lato", fontSize=32, fontWeight=700, fontStyle="italic").encode(text=alt.value(f'{input_response} %'))
+
+    plot_bg = alt.Chart(source_bg).mark_arc(innerRadius=100, cornerRadius=40).encode(
+        theta=alt.Theta(field="% value", type="quantitative"),
+        color=alt.Color("Topic:N",
+                        scale=alt.Scale(
+                            domain=[input_text, ''],
+                            range=chart_color),
+                        legend=None),
+    ).properties(width=360, height=360)
+
+    return plot_bg + plot + text
+
 def display_wealth_score_results(results, df):
     global dimensions
     global option_scores
@@ -356,14 +417,14 @@ def display_wealth_score_results(results, df):
             st.subheader(f"""Total Wealth Before Planning: ${df['Before Planning'].sum():,.2f}""")
             st.divider()
             st.subheader("Before Planning 4D Wealth Score")
-            gauge_chart_before = create_gauge_chart(overall_before_planning_score, "Overall Score Before Planning")
+            gauge_chart_before = create_gauge_chart(overall_before_planning_score, "Overall Score Before Planning", overall_before_planning_score)
             st.plotly_chart(gauge_chart_before)
 
         with col2:
             st.subheader(f"""Total Wealth After Planning: ${df['After Planning'].sum():,.2f}""")
             st.divider()
             st.subheader("After Planning 4D Wealth Score")
-            gauge_chart_after = create_gauge_chart(overall_after_planning_score, "Overall Score After Planning")
+            gauge_chart_after = create_gauge_chart(overall_after_planning_score, "Overall Score After Planning", overall_before_planning_score)
             st.plotly_chart(gauge_chart_after)
 
     else:
@@ -376,7 +437,31 @@ def display_wealth_score_results(results, df):
 
     tab1, tab2, tab3, tab4 = st.tabs(["Dimension Analysis", "Redistribution Analysis", "Asset Type Analysis", "Recommendations"])
 
+
     with tab1:
+        # Create pie charts for each dimension
+        st.header("Dimension Scores")
+        for dimension_key, dimension_data in results.items():
+            if dimension_key.startswith('D'):
+                st.divider()
+                st.subheader(f"Dimension Score - {dimension_data['Dimension Label']}")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write("Before Planning")
+                    donut_chart_before = make_donut(
+                        input_response=dimension_data["Total Before Planning Score Percentage"],
+                        input_text="Before",
+                    )
+                    st.altair_chart(donut_chart_before, use_container_width=True)
+                with col2:
+                    st.write("After Planning")
+                    donut_chart_after = make_donut(
+                        input_response=dimension_data["Total After Planning Score Percentage"],
+                        input_text="After",
+                    )
+                    st.altair_chart(donut_chart_after, use_container_width=True)
+
+    with tab2:
         # Create pie charts for each dimension
         st.header("Distribution of Wealth Percentage Across Dimensions")
         for dimension_key, dimension_data in results.items():
@@ -394,6 +479,10 @@ def display_wealth_score_results(results, df):
                     st.write("After Planning")
                     pie_chart_after = create_pie_chart(after_distribution, option_scores[dimension_key], f"{dimension_data['Dimension Label']} - After Planning")
                     st.plotly_chart(pie_chart_after)
+
+
+
+
     with tab2:
         # Display stacked bar charts for each dimension
         st.header("Impact of Redistribution of Wealth")
