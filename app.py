@@ -20,7 +20,7 @@ else:
     st.session_state['logged_in'] = False
 
 # Debugging: Check if cookies are being set and retrieved
-print("Cookies available:", cookies.getAll())
+# print("Cookies available:", cookies.getAll())
 
 # Main function to control app flow
 def main():
