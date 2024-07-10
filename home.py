@@ -443,8 +443,16 @@ async def llm_response(user_query):
 
         result = await loop.create_task(llm_agent.call_llm_agent(user_query = user_query, chat_response_container = page_placeholders['llm_response'],  run_status_element = run_status_element))
 
-        run_status_element.empty()
-        llm_agent.render_text_area(page_placeholders['llm_response'], 'llm_response', result['agent_response'])
+        if not result:
+            NULL_REPONSE = {
+                'agent_response': 'The Agent is not live right now - team will be notified to address this issue.',
+                'doc_id': None,
+            }
+            llm_agent.render_text_area(page_placeholders['llm_response'], 'llm_response', NULL_REPONSE['agent_response'])
+
+        else:
+            run_status_element.empty()
+            llm_agent.render_text_area(page_placeholders['llm_response'], 'llm_response', result['agent_response'])
 
 
 # Main function to control app flow

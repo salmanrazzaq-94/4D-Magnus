@@ -110,25 +110,29 @@ async def call_llm_agent(
         run_status_element = None,
         return_stream = True
     ):
+    try:
+        if run_status_element:
+            run_status_element.code('Agent is producing appropriate response', language="plaintext")
+        response_stream = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "user", "content": user_query}
+                ],
+                stream=True,
+                temperature=0.1 # medium temperature for this mode
+            )
 
-    if run_status_element:
-        run_status_element.code('Agent is producing appropriate response', language="plaintext")
-
-    response_stream = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "user", "content": user_query}
-            ],
-            stream=True,
-            temperature=0.1 # medium temperature for this mode
-        )
-
-    # ticker dashboard
-    if return_stream:
-        output_dict = {
-            'agent_response': response_stream
-        }
-        return output_dict
+        # ticker dashboard
+        if return_stream:
+            output_dict = {
+                'agent_response': response_stream
+            }
+            return output_dict
+    
+    except Exception as e:
+        print(f"Error Occured: {e}")
+        run_status_element.empty()
+        return None
     
 
 # print(asyncio.run(call_llm_agent(user_query="Write me a short poem?")))
