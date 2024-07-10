@@ -15,7 +15,69 @@ import json
 # # Set page config
 # st.set_page_config(page_title="4D Wealth Model", page_icon=":star:", layout="wide", initial_sidebar_state="collapsed")
 
+default_response = """To maximize your wealth score, we need to strategically reallocate your assets based on the dimensions and their respective weights. Here are three strategies to consider:
 
+ Strategy 1: Focus on Tax-Deferred and Tax-Free Growth
+
+Reduce Wealth From:
+- Marketable Securities (Non-Qualified)
+- Real Estate (Non-Qualified)
+- Private Equity (Non-Qualified)
+
+Invest In:
+- Roth IRA, Roth 401k, Roth Annuity
+- Marketable Securities (Qualified)
+- Life Insurance (Qualified)
+- Split-Dollar Life Insurance
+- Annuity (Qualified)
+
+Rationale:
+- By reducing investments in assets that are subject to taxable growth and increasing investments in tax-deferred and tax-free growth assets, you can significantly improve your scores in the "Taxation on Growth" dimension.
+- Qualified assets like Roth IRA and Life Insurance provide better tax advantages on growth and distribution, which will enhance your overall wealth score.
+
+ Strategy 2: Enhance Asset Protection and Charitable Deduction
+
+Reduce Wealth From:
+- Marketable Securities (Non-Qualified)
+- Real Estate (Non-Qualified)
+- Private Equity (Non-Qualified)
+
+Invest In:
+- Charitable Assets
+- Split-Dollar Life Insurance
+- Life Insurance (Qualified)
+- Annuity (Qualified)
+
+Rationale:
+- Increasing investments in assets that offer asset protection and charitable deductions will improve your scores in the "Asset Protection" and "Charitable Deduction" dimensions.
+- Charitable assets provide a dual benefit of tax-free growth and charitable deductions, which can significantly boost your overall score.
+
+ Strategy 3: Optimize for Taxation on Distribution and Funding
+
+Reduce Wealth From:
+- Marketable Securities (Non-Qualified)
+- Real Estate (Non-Qualified)
+- Private Equity (Non-Qualified)
+
+Invest In:
+- Roth IRA, Roth 401k, Roth Annuity
+- Life Insurance (Qualified)
+- Split-Dollar Life Insurance
+- Annuity (Qualified)
+
+Rationale:
+- By reallocating funds to assets that are not taxable on distribution, you can improve your scores in the "Taxation on Distribution" dimension.
+- Additionally, focusing on pre-tax funding options like qualified annuities and life insurance will enhance your scores in the "Taxation on Funding" dimension.
+- This strategy leverages the tax advantages of qualified assets to maximize your wealth score.
+
+ Summary
+
+Each strategy focuses on different dimensions to maximize your wealth score:
+1. Tax-Deferred and Tax-Free Growth: Prioritizes tax advantages on growth.
+2. Asset Protection and Charitable Deduction: Enhances protection and charitable benefits.
+3. Taxation on Distribution and Funding: Optimizes for tax advantages on distribution and funding.
+
+By reallocating your assets according to these strategies, you can significantly improve your overall wealth score."""
 
 # Define the dimensions and their options with weights
 dimensions = {
@@ -445,8 +507,7 @@ async def llm_response(user_query):
 
         if not result:
             NULL_REPONSE = {
-                'agent_response': 'The Agent is not live right now - team will be notified to address this issue.',
-                'doc_id': None,
+                'agent_response':default_response,
             }
             llm_agent.render_text_area(page_placeholders['llm_response'], 'llm_response', NULL_REPONSE['agent_response'])
 
