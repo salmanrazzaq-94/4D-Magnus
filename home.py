@@ -165,7 +165,6 @@ def get_color_map(option_scores):
 def create_stacked_bar_chart(dimension_data, dimension_label, option_scores):
     options = dimension_data['Options']
     color_map = get_color_map(option_scores)
-    print(color_map)
 
     # Prepare data for before and after planning
     before_contributions = {}
@@ -338,7 +337,6 @@ def display_wealth_score_results(results, df):
             if dimension_key.startswith('D'):
                 dimension_label = dimension_data['Dimension Label']
                 option_scores_for_dimension = option_scores[dimension_key]
-                print(dimension_data, dimension_label, option_scores_for_dimension)
                 chart = create_stacked_bar_chart(dimension_data, dimension_label, option_scores_for_dimension)
                 st.plotly_chart(chart)
 
@@ -380,7 +378,6 @@ def display_wealth_score_results(results, df):
         st.session_state.tab4_activated = True
         st.header("Agentic Recommendations")
         user_query = create_user_query(results, df)
-        print(user_query)
         asyncio.run(llm_response(user_query))
 
 
@@ -401,10 +398,10 @@ def create_user_query(results, df):
     global dimensions
     global option_scores
     # Convert to JSON
-    df_json = convert_json_to_string(json.loads(df.to_json(orient='records')))
-    results = convert_json_to_string(results)
-    dimensions = convert_json_to_string(dimensions)
-    option_scores = convert_json_to_string(option_scores)
+    df_json_string = convert_json_to_string(json.loads(df.to_json(orient='records')))
+    results_string = convert_json_to_string(results)
+    dimensions_string = convert_json_to_string(dimensions)
+    option_scores_string = convert_json_to_string(option_scores)
 
     user_query = f"""
 You are an Asset Wealth Manager with strong financial expertise. I need your help in devising three strategies to improve my wealth score. In the ###Data### provided below, all columns remain fixed except for the "After Planning" column. Your task is to devise a reallocation of money in different asset types so that the wealth score is maximized. Use the ###Dimensions_Weight### and ###Options_Score### sections to understand how the wealth score is calculated.
@@ -412,16 +409,16 @@ You are an Asset Wealth Manager with strong financial expertise. I need your hel
 The current results are available in the ###Results### section. Please use the following notes to devise a proper response.
 
 ###Data###
-{df_json}
+{df_json_string}
 
 ###Dimensions_Weight###
-{dimensions}
+{dimensions_string}
 
 ###Options_Score###
-{option_scores}
+{option_scores_string}
 
 ###Results###
-{results}
+{results_string}
 
 Notes:
 - Write three strategies without providing numbers for reallocating wealth in different asset types that are better for increasing our wealth score.
